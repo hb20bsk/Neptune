@@ -41,7 +41,7 @@ local Library = {
 	Connections = {},
 	ConfigFlags = {},
 	AccentUpdaters = {},
-	Directory = "NeptuneFolder",
+	Directory = "Erm",
 	Folders = { "/Fonts", "/Configs" },
 	CurrentlyOpen = nil,
 	AnimationSpeed = 1,
@@ -3009,6 +3009,10 @@ function Library:CreateSection(Parent, Title)
 end
 
 function Library:Window(Title, Subtitle, Icon, Size)
+	if self.CurrentlyOpen then
+		self:Unload()
+	end
+
 	Title = tostring(Title or "")
 	Subtitle = tostring(Subtitle or "")
 	local WindowSize = typeof(Size) == "UDim2" and Size or FromOffset(720, 500)
@@ -4826,21 +4830,35 @@ end
 
 function Library:Unload()
 	for _, Conn in ipairs(self.Connections) do
-		if Conn ~= nil then
-			Conn:Disconnect()
-		end
+		if Conn ~= nil then Conn:Disconnect() end
 	end
 	self.Connections = {}
 
-	local Win = self.CurrentlyOpen
-	if typeof(Win) == "table" and typeof(Win.Gui) == "Instance" and Win.Gui.Parent then
-		Win.Gui:Destroy()
+	if self.CurrentlyOpen and self.CurrentlyOpen.Gui then
+		self.CurrentlyOpen.Gui:Destroy()
 	end
 	self.CurrentlyOpen = nil
 
+	self.Toggles = {}
+	self.Options = {}
 	self.Flags = {}
 	self.ConfigFlags = {}
 	self.AccentUpdaters = {}
+	self._ThemedProperties = {}
+	self._ThemedGradients = {}
+	self._ThemeRenderers = {}
+
+	if self.KeybindList and self.KeybindList.Gui then
+		self.KeybindList.Gui:Destroy()
+		self.KeybindList.Entries = {}
+		self.KeybindList.OrderedIds = {}
+		self.KeybindList.Items = {}
+	end
+
+	if self.Notifications and self.Notifications.Gui then
+		self.Notifications.Gui:Destroy()
+		self.Notifications.Queue = {}
+	end
 end
 
 
