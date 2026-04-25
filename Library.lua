@@ -3009,9 +3009,18 @@ function Library:CreateSection(Parent, Title)
 end
 
 function Library:Window(Title, Subtitle, Icon, Size)
-	if self.CurrentlyOpen then
-		self:Unload()
+	if typeof(Title) == "table" then
+		local o = Title
+		Title = o.Title or o.Text or "Neptune"
+		Subtitle = o.Subtitle or ""
+		Icon = o.Icon or ""
+		Size = o.Size
 	end
+
+	if getgenv().NeptuneShared then
+		pcall(function() getgenv().NeptuneShared:Unload() end)
+	end
+	getgenv().NeptuneShared = self
 
 	Title = tostring(Title or "")
 	Subtitle = tostring(Subtitle or "")
@@ -4830,14 +4839,15 @@ end
 
 function Library:Unload()
 	for _, Conn in ipairs(self.Connections) do
-		if Conn ~= nil then Conn:Disconnect() end
+		if Conn ~= nil then pcall(function() Conn:Disconnect() end) end
 	end
 	self.Connections = {}
 
 	if self.CurrentlyOpen and self.CurrentlyOpen.Gui then
-		self.CurrentlyOpen.Gui:Destroy()
+		pcall(function() self.CurrentlyOpen.Gui:Destroy() end)
 	end
 	self.CurrentlyOpen = nil
+	getgenv().NeptuneShared = nil
 
 	self.Toggles = {}
 	self.Options = {}
@@ -4849,14 +4859,14 @@ function Library:Unload()
 	self._ThemeRenderers = {}
 
 	if self.KeybindList and self.KeybindList.Gui then
-		self.KeybindList.Gui:Destroy()
+		pcall(function() self.KeybindList.Gui:Destroy() end)
 		self.KeybindList.Entries = {}
 		self.KeybindList.OrderedIds = {}
 		self.KeybindList.Items = {}
 	end
 
 	if self.Notifications and self.Notifications.Gui then
-		self.Notifications.Gui:Destroy()
+		pcall(function() self.Notifications.Gui:Destroy() end)
 		self.Notifications.Queue = {}
 	end
 end
